@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>내글답게 | 논증문 쓰기 코칭 앱</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- 앱의 목적을 간단히 알려 주는 머리말입니다. -->
+    <header class="app-header">
+      <p class="eyebrow">나의 생각을 더 선명하게</p>
+      <h1>내글답게</h1>
+      <p class="subtitle">AI스럽지 않은 자연스러운 논증문 쓰기 코칭 앱</p>
+      <p class="purpose">
+        글을 대신 써 주지 않습니다. 이미 작성한 글을 점검하고 직접 고쳐 쓰는 과정을 돕습니다.
+      </p>
+    </header>
+
+    <main class="app-card">
+      <!-- 작성은 1단계에서 끝나며, 이후 단계는 평가와 수정 과정입니다. -->
+      <nav class="step-navigation" aria-label="논증문 점검 진행 단계">
+        <button class="step-tab active" type="button" data-step="0" aria-current="step">
+          <span class="step-number">1</span><span class="step-label">논증글 입력</span>
+        </button>
+        <button class="step-tab" type="button" data-step="1">
+          <span class="step-number">2</span><span class="step-label">논증 구조 평가</span>
+        </button>
+        <button class="step-tab" type="button" data-step="2">
+          <span class="step-number">3</span><span class="step-label">문장·표현 평가</span>
+        </button>
+        <button class="step-tab" type="button" data-step="3">
+          <span class="step-number">4</span><span class="step-label">종합 피드백</span>
+        </button>
+        <button class="step-tab" type="button" data-step="4">
+          <span class="step-number">5</span><span class="step-label">고쳐쓰기</span>
+        </button>
+        <button class="step-tab" type="button" data-step="5">
+          <span class="step-number">6</span><span class="step-label">수정 전후 비교</span>
+        </button>
+      </nav>
+
+      <div class="progress-track" aria-hidden="true">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+      <div id="appNotice" class="app-notice" role="status" aria-live="polite" hidden></div>
+
+      <!-- 1단계: 학습자가 이미 작성한 글 전체를 입력합니다. -->
+      <section class="step-panel active" data-step="0">
+        <div class="panel-heading">
+          <p class="step-kicker">1단계 · 작성한 글 가져오기</p>
+          <h2>논증글 전체 입력</h2>
+          <p>
+            논증문을 주장, 근거, 반론으로 나누지 않아도 됩니다.
+            이미 작성한 글 전체를 아래 입력창에 그대로 넣어 주세요.
+          </p>
+        </div>
+
+        <div class="input-card">
+          <label for="topic">글쓰기 주제 <span class="optional-label">선택</span></label>
+          <p class="field-guide">주제를 알고 있다면 간단히 적어 주세요. 비워 두어도 평가할 수 있습니다.</p>
+          <input id="topic" type="text" placeholder="예: 청소년의 스마트폰 사용을 제한해야 하는가?">
+        </div>
+
+        <div class="input-card main-writing-card">
+          <div class="field-heading">
+            <div>
+              <label for="originalEssay">논증문 본문</label>
+              <p class="field-guide">학습자가 이미 작성한 논증글 전체를 입력해 주세요.</p>
+            </div>
+            <span id="originalCharacterCount" class="character-count" aria-live="polite">0자</span>
+          </div>
+          <textarea
+            id="originalEssay"
+            class="large-essay-input"
+            rows="18"
+            placeholder="작성한 논증문 전체를 여기에 입력해 주세요."
+          ></textarea>
+          <div class="save-row">
+            <button id="saveOriginalButton" class="button button-accent" type="button">원문 저장</button>
+            <p id="originalSaveMessage" class="save-message" role="status" aria-live="polite"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2단계: 본문 안에서 논증 구조 신호를 탐지해 평가합니다. -->
+      <section class="step-panel" data-step="1">
+        <div class="panel-heading">
+          <p class="step-kicker">2단계 · 생각의 뼈대 살펴보기</p>
+          <h2>논증 구조 평가</h2>
+          <p>글 전체에서 주장, 근거, 사례, 반론, 결론이 어떻게 드러나는지 살펴봅니다.</p>
+        </div>
+
+        <section class="summary-banner">
+          <div>
+            <span>논증 구조 평균</span>
+            <strong id="structureAverage">1.0 / 5점</strong>
+          </div>
+          <p id="structureSummary"></p>
+        </section>
+        <div id="structureCards" class="evaluation-grid"></div>
+      </section>
+
+      <!-- 3단계: 문장 흐름과 AI 글과 유사하게 보일 가능성을 평가합니다. -->
+      <section class="step-panel" data-step="2">
+        <div class="panel-heading">
+          <p class="step-kicker">3단계 · 문체와 표현 살펴보기</p>
+          <h2>문장·표현 평가</h2>
+          <p>문장 길이, 반복 표현, 필자 관점, 구체성을 글 전체에서 분석합니다.</p>
+        </div>
+
+        <section class="statistics-grid" aria-label="원문 기본 통계">
+          <article><strong id="statCharacters">0</strong><span>글자 수</span></article>
+          <article><strong id="statSentences">0</strong><span>문장 수</span></article>
+          <article><strong id="statParagraphs">0</strong><span>문단 수</span></article>
+        </section>
+
+        <div id="expressionCards" class="evaluation-grid"></div>
+
+        <section class="content-card ai-detail-section">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">획일적으로 보일 수 있는 표현 점검</p>
+              <h3>AI 글과 유사하게 보일 가능성</h3>
+            </div>
+            <div id="aiRiskBadge" class="risk-badge risk-low">
+              <span>위험도</span><strong id="aiRiskLabel">낮음</strong>
+            </div>
+          </div>
+          <p id="aiRiskDescription" class="highlight-message"></p>
+
+          <div class="detail-grid">
+            <article class="detail-card">
+              <h4>발견된 표현</h4>
+              <ul id="aiFindingsList" class="message-list"></ul>
+            </article>
+            <article class="detail-card">
+              <h4>문장별 진단</h4>
+              <ul id="aiSentenceList" class="message-list"></ul>
+            </article>
+            <article class="detail-card">
+              <h4>직접 고치기 위한 질문</h4>
+              <ul id="aiDirectionList" class="message-list"></ul>
+            </article>
+          </div>
+        </section>
+      </section>
+
+      <!-- 4단계: 앞선 두 평가를 좋은 점, 보완점, 질문형 방향으로 종합합니다. -->
+      <section class="step-panel" data-step="3">
+        <div class="panel-heading">
+          <p class="step-kicker">4단계 · 수정 계획 세우기</p>
+          <h2>종합 피드백</h2>
+          <p>글을 대신 고쳐 쓰지 않고, 학습자가 직접 판단할 수 있는 방향을 제시합니다.</p>
+        </div>
+
+        <p id="overallSummary" class="overall-summary"></p>
+        <div class="feedback-grid">
+          <article class="feedback-card feedback-good">
+            <h3>좋은 점</h3>
+            <ul id="goodPointsList" class="message-list"></ul>
+          </article>
+          <article class="feedback-card feedback-improve">
+            <h3>보완할 점</h3>
+            <ul id="improvementPointsList" class="message-list"></ul>
+          </article>
+          <article class="feedback-card feedback-direction">
+            <h3>고쳐쓰기 방향</h3>
+            <ul id="revisionDirectionsList" class="message-list"></ul>
+          </article>
+        </div>
+        <div class="center-action">
+          <button id="goToRevisionButton" class="button button-primary" type="button">고쳐쓰기 시작하기</button>
+        </div>
+      </section>
+
+      <!-- 5단계: 원문을 보며 글 전체를 다시 작성합니다. -->
+      <section class="step-panel" data-step="4">
+        <div class="panel-heading">
+          <p class="step-kicker">5단계 · 내 표현으로 다시 쓰기</p>
+          <h2>고쳐쓰기</h2>
+          <p>피드백을 참고하되, 자신의 생각과 문체를 살려 글 전체를 다시 작성해 보세요.</p>
+        </div>
+
+        <div class="rewrite-grid">
+          <article class="content-card">
+            <p class="section-kicker">처음 쓴 글</p>
+            <h3>원문 보기</h3>
+            <div id="revisionOriginalView" class="readonly-essay">아직 작성한 원문이 없습니다.</div>
+          </article>
+          <article class="content-card">
+            <div class="field-heading">
+              <div>
+                <p class="section-kicker">피드백을 반영한 글</p>
+                <h3>수정본 작성</h3>
+              </div>
+              <span id="revisionCharacterCount" class="character-count" aria-live="polite">0자</span>
+            </div>
+            <textarea
+              id="revisionEssay"
+              class="large-essay-input revision-input"
+              rows="18"
+              placeholder="피드백을 참고하여 논증문 전체를 다시 작성해 보세요."
+            ></textarea>
+            <div class="save-row">
+              <button id="saveRevisionButton" class="button button-accent" type="button">수정본 저장</button>
+              <p id="revisionSaveMessage" class="save-message" role="status" aria-live="polite"></p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- 6단계: 원문과 수정본을 나란히 비교합니다. -->
+      <section class="step-panel" data-step="5">
+        <div class="panel-heading">
+          <p class="step-kicker">6단계 · 변화 확인하기</p>
+          <h2>수정 전후 비교</h2>
+          <p>원문과 수정본의 차이를 확인하고, 다음 수정에서 살펴볼 부분을 찾습니다.</p>
+        </div>
+
+        <div id="emptyRevisionNotice" class="app-notice notice-info" hidden>
+          먼저 5단계에서 수정본을 작성해 주세요.
+        </div>
+
+        <div class="comparison-text-grid">
+          <article class="content-card">
+            <p class="section-kicker">수정 전</p>
+            <h3>원문</h3>
+            <div id="comparisonOriginalView" class="readonly-essay">아직 작성한 원문이 없습니다.</div>
+          </article>
+          <article class="content-card">
+            <p class="section-kicker">수정 후</p>
+            <h3>수정본</h3>
+            <div id="comparisonRevisionView" class="readonly-essay">아직 작성한 수정본이 없습니다.</div>
+          </article>
+        </div>
+
+        <section class="content-card comparison-table-card">
+          <p class="section-kicker">숫자로 변화 살펴보기</p>
+          <h3>7개 항목 비교</h3>
+          <div class="table-wrapper">
+            <table class="comparison-table">
+              <thead>
+                <tr><th>비교 항목</th><th>원문</th><th>수정본</th><th>변화</th></tr>
+              </thead>
+              <tbody id="comparisonTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <div class="comparison-feedback-grid">
+          <article class="feedback-card feedback-good">
+            <h3>개선된 점</h3>
+            <ul id="comparisonImprovedList" class="message-list"></ul>
+          </article>
+          <article class="feedback-card feedback-improve">
+            <h3>더 살펴볼 점</h3>
+            <ul id="comparisonNextList" class="message-list"></ul>
+          </article>
+        </div>
+        <div class="center-action">
+          <button id="returnToRevisionButton" class="button button-secondary" type="button">다시 고쳐쓰기</button>
+        </div>
+      </section>
+
+      <!-- 모든 단계에서 공통으로 사용하는 이전·다음 버튼입니다. -->
+      <div class="navigation-buttons">
+        <button id="previousButton" class="button button-secondary" type="button">이전 단계</button>
+        <p id="stepStatus" class="step-status" aria-live="polite">1 / 6 단계</p>
+        <button id="nextButton" class="button button-primary" type="button">논증 구조 평가 보기</button>
+      </div>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
